@@ -1,0 +1,92 @@
+version: '3.9'
+
+services:
+  company-service:
+    build:
+      context: '../company-service'
+      dockerfile: Dockerfile
+    container_name: company-service
+    restart: unless-stopped
+    ports:
+      - "50051:50051"
+    depends_on:
+      - career-gateway-redis
+    environment:
+      DB_HOST: company-db
+      DB_PORT: 5432
+      DB_NAME: company_db
+      DB_USER: company_user
+      DB_PASSWORD: password
+      REDIS_HOST: career-gateway-redis
+      REDIS_PORT: 6379
+    networks:
+      - backend-network
+
+  company-db:
+    image: postgres:latest
+    container_name: company-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: company_db
+      POSTGRES_USER: company_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - company_postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend-network
+
+
+  auth-service:
+    build:
+      context: '../auth-service'
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "50052:50052"
+    depends_on:
+      - auth-db
+    environment:
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_NAME: auth_db
+      DB_USER: auth_user
+      DB_PASSWORD: password
+    networks:
+      - backend-network
+
+
+  auth-db:
+    image: postgres:latest
+    container_name: auth-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:latest
+    container_name: career-gateway-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - backend-network
+    command: ["redis-server", "--appendonly", "yes"]
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  auth_postgres_data:
+  company_postgres_data:
