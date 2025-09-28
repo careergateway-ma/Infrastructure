@@ -1,4 +1,3 @@
-version: '3.9'
 
 services:
   company-service:
@@ -10,13 +9,13 @@ services:
     ports:
       - "50051:50051"
     depends_on:
+      - company-db
       - career-gateway-redis
     environment:
-      DB_HOST: company-db
-      DB_PORT: 5432
-      DB_NAME: company_db
-      DB_USER: company_user
-      DB_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://company-db:5432/company_db
+      SPRING_DATASOURCE_USERNAME: company_user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
       REDIS_HOST: career-gateway-redis
       REDIS_PORT: 6379
     networks:
@@ -49,11 +48,10 @@ services:
     depends_on:
       - auth-db
     environment:
-      DB_HOST: auth-db
-      DB_PORT: 5432
-      DB_NAME: auth_db
-      DB_USER: auth_user
-      DB_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: auth_user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
     networks:
       - backend-network
 
@@ -73,7 +71,7 @@ services:
     networks:
       - backend-network
 
-  redis:
+  career-gateway-redis:
     image: redis:latest
     container_name: career-gateway-redis
     restart: unless-stopped
