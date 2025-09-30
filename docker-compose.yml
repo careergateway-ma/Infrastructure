@@ -52,6 +52,8 @@ services:
       SPRING_DATASOURCE_USERNAME: auth_user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
+      JWT_SECRET: 0508f2dc-56d5-465e-8e0b-1a841aaa01ce
+      JWT_EXPIRATION: 86400000
     networks:
       - backend-network
 
@@ -71,12 +73,29 @@ services:
     networks:
       - backend-network
 
+  gateway-service:
+    build:
+      context: '../gateway'
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - company-service
+      - auth-service
+    networks:
+      - backend-network
+
   career-gateway-redis:
     image: redis:latest
     container_name: career-gateway-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
+    environment:
+      COMPANY_SERVICE_HOST: company-service
+      COMPANY_SERVICE_PORT: 50051
     networks:
       - backend-network
     command: ["redis-server", "--appendonly", "yes"]
